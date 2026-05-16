@@ -1,0 +1,44 @@
+# Example workflow. To enable, move this file to .github/workflows/sync-issues.yml
+# This workflow runs an issue -> content sync script and commits changes back to the repo.
+
+name: Sync GitHub Issues to Content (example)
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled, unlabeled, closed]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run issue -> content sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node ./src/issues-to-content.js
+
+      - name: Commit changes
+        run: |
+          git add -A
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: sync issues to content [skip ci]" || echo "no changes to commit"
+            git push origin HEAD:${{ github.ref_name || github.ref }} || echo "push failed"
+          else
+            echo "No changes"
+          fi
