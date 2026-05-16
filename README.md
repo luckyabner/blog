@@ -1,77 +1,62 @@
-# Astro Starter Kit: Blog
+# GitHub Native Astro Blog
 
-```sh
-npm create astro@latest -- --template blog
+一个基于 **Astro + SSG** 的个人博客：  
+**GitHub Issues 是 CMS，Astro 是展示层，GitHub Actions 是同步层**。
+
+## 核心特性
+
+- 默认所有 Issue 都是博客文章（`/blog/[slug]`）
+- label 分流：
+  - `projects` → Projects 页面
+  - `about` → About 页面（`/about`）
+  - `pinned` → 首页置顶
+  - `hidden` → 不展示
+- 无数据库、无运行时 GitHub API 请求、无客户端 token 暴露
+- RSS + Sitemap + 静态生成
+
+## 本地开发
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-<!-- ASTRO:REMOVE:START -->
+## Issue 同步脚本
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/blog)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/blog)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/blog/devcontainer.json)
-
-<!-- ASTRO:REMOVE:END -->
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-<!-- ASTRO:REMOVE:START -->
-
-![blog](https://github.com/withastro/astro/assets/2244813/ff10799f-a816-4703-b967-c78997e8323d)
-
-<!-- ASTRO:REMOVE:END -->
-
-Features:
-
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+```bash
+GITHUB_TOKEN=xxx GITHUB_REPOSITORY=owner/repo pnpm sync:issues
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+该命令会：
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+1. 拉取仓库 Issues（自动分页）
+2. 生成 `src/content/blog` / `src/content/projects` / `src/content/pages`
+3. 输出标准 frontmatter（slug/date/labels/pinned/hidden/summary）
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+## GitHub Actions 自动同步
 
-Any static assets, like images, can be placed in the `public/` directory.
+工作流文件：`.github/workflows/sync-issues.yml`
 
-## 🧞 Commands
+触发方式：
 
-All commands are run from the root of the project, from a terminal:
+- Issue 新增/编辑/label 变更/关闭
+- 每小时定时同步
+- 手动触发（workflow_dispatch）
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+工作流会在有内容变化时自动提交 `src/content/**`。
 
-## 👀 Want to learn more?
+## 内容写作约定（低摩擦）
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+默认流程：
 
-## Credit
+1. New Issue
+2. 写标题 + Markdown 正文
+3. 发布
 
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+无需 frontmatter、无需复杂 schema。
+
+## 部署（Vercel）
+
+1. 导入 GitHub 仓库到 Vercel
+2. 在 Vercel 环境变量设置 `SITE_URL`（例如 `https://your-domain.com`）
+3. 每次内容同步提交后自动触发构建并发布

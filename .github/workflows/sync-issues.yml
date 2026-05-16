@@ -1,0 +1,45 @@
+name: Sync GitHub Issues to Content
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled, unlabeled, closed]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Sync issues to Astro content
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node ./scripts/issues-to-content.js
+
+      - name: Commit and push changes
+        run: |
+          git add src/content
+          if git diff --cached --quiet; then
+            echo "No content changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(content): sync issues to content [skip ci]"
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          git push origin "HEAD:${BRANCH}"

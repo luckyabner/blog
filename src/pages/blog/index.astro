@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
@@ -7,82 +6,49 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+const getDate = (entry) => entry.data.date ?? entry.data.pubDate ?? new Date(0);
+const getSlug = (entry) => entry.data.slug ?? entry.id;
+const getSummary = (entry) =>
+	entry.data.summary ?? entry.data.description ?? 'No summary yet.';
+
+const posts = (await getCollection('blog', ({ data }) => !data.hidden)).sort(
+	(a, b) => getDate(b).valueOf() - getDate(a).valueOf(),
 );
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title={`Blog · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
+			.entries {
+				display: grid;
+				gap: 1rem;
 				margin: 0;
 				padding: 0;
+				list-style: none;
 			}
-			ul li {
-				width: calc(50% - 1rem);
+			.entry {
+				border: 1px solid var(--surface-border);
+				border-radius: 0.65rem;
+				padding: 0.9rem 1rem;
 			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
+			.entry h2 {
 				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
+				font-size: 1.1rem;
 			}
 			.date {
+				margin: 0.3rem 0 0.4rem;
+				color: var(--muted);
+				font-size: 0.9rem;
+			}
+			.summary {
 				margin: 0;
-				color: rgb(var(--gray));
+				color: var(--muted);
+				font-size: 0.95rem;
 			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
+			.empty {
+				color: var(--muted);
 			}
 		</style>
 	</head>
@@ -90,23 +56,22 @@ const posts = (await getCollection('blog')).sort(
 		<Header />
 		<main>
 			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
+				<h1>Blog</h1>
+				{posts.length === 0 ? (
+					<p class="empty">No posts yet. Create a new GitHub Issue to publish one.</p>
+				) : (
+					<ul class="entries">
+						{posts.map((post) => (
+							<li class="entry">
+								<h2><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h2>
+								<p class="date">
+									<FormattedDate date={getDate(post)} />
+								</p>
+								<p class="summary">{getSummary(post)}</p>
 							</li>
-						))
-					}
-				</ul>
+						))}
+					</ul>
+				)}
 			</section>
 		</main>
 		<Footer />

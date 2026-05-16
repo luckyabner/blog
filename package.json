@@ -11,7 +11,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "sync:issues": "node ./src/issues-to-content.js"
+    "sync:issues": "node ./scripts/issues-to-content.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

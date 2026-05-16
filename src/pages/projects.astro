@@ -1,0 +1,66 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+
+const getDate = (entry) => entry.data.date ?? entry.data.pubDate ?? new Date(0);
+const projects = (await getCollection('projects', ({ data }) => !data.hidden)).sort(
+	(a, b) => getDate(b).valueOf() - getDate(a).valueOf(),
+);
+const renderedProjects = await Promise.all(
+	projects.map(async (project) => ({ project, ...(await render(project)) })),
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Projects · ${SITE_TITLE}`} description="Project notes powered by GitHub Issues." />
+		<style>
+			.project-list {
+				display: grid;
+				gap: 1.5rem;
+			}
+			.project {
+				border: 1px solid var(--surface-border);
+				border-radius: 0.65rem;
+				padding: 1rem;
+			}
+			.meta {
+				margin: 0.25rem 0 0.9rem;
+				color: var(--muted);
+				font-size: 0.9rem;
+			}
+			.empty {
+				color: var(--muted);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Projects</h1>
+			{
+				renderedProjects.length === 0 ? (
+					<p class="empty">No projects yet. Label an issue with <code>projects</code>.</p>
+				) : (
+					<section class="project-list">
+						{renderedProjects.map(({ project, Content }) => (
+							<article class="project">
+								<h2>{project.data.title}</h2>
+								<p class="meta">
+									<FormattedDate date={getDate(project)} />
+								</p>
+								<Content />
+							</article>
+						))}
+					</section>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

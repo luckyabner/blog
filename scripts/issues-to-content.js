@@ -1,0 +1,164 @@
+#!/usr/bin/env node
+
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+const token = process.env.GITHUB_TOKEN;
+const repository = process.env.GITHUB_REPOSITORY;
+
+if (!token || !repository) {
+	console.error('GITHUB_TOKEN and GITHUB_REPOSITORY are required.');
+	process.exit(1);
+}
+
+const CONTENT_ROOT = path.join(process.cwd(), 'src', 'content');
+const TARGET_DIRS = ['blog', 'projects', 'pages'];
+
+function slugify(input) {
+	const base = String(input ?? '')
+		.normalize('NFKD')
+		.toLowerCase()
+		.replace(/[^\w\s-]/g, '')
+		.trim()
+		.replace(/[\s_-]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+	return base || 'untitled';
+}
+
+function yamlString(value) {
+	return JSON.stringify(String(value ?? ''));
+}
+
+function toSummary(markdown) {
+	const plain = String(markdown ?? '')
+		.replace(/```[\s\S]*?```/g, ' ')
+		.replace(/`[^`]*`/g, ' ')
+		.replace(/!\[[^\]]*]\([^)]+\)/g, ' ')
+		.replace(/\[[^\]]+]\([^)]+\)/g, '$1')
+		.replace(/[#>*_~-]/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+	return plain.slice(0, 180);
+}
+
+function classify(labels) {
+	if (labels.includes('about')) {
+		return 'pages';
+	}
+	if (labels.includes('projects')) {
+		return 'projects';
+	}
+	return 'blog';
+}
+
+async function ensureCleanContentDirs() {
+	for (const dir of TARGET_DIRS) {
+		await fs.rm(path.join(CONTENT_ROOT, dir), { recursive: true, force: true });
+		await fs.mkdir(path.join(CONTENT_ROOT, dir), { recursive: true });
+	}
+	const placeholder = [
+		'---',
+		'title: "placeholder"',
+		'slug: "placeholder"',
+		'date: "1970-01-01T00:00:00.000Z"',
+		'labels: ["hidden"]',
+		'pinned: false',
+		'hidden: true',
+		'summary: "placeholder"',
+		'---',
+		'',
+	].join('\n');
+	await fs.writeFile(path.join(CONTENT_ROOT, 'projects', '_placeholder.md'), placeholder, 'utf8');
+	await fs.writeFile(path.join(CONTENT_ROOT, 'pages', '_placeholder.md'), placeholder, 'utf8');
+}
+
+async function fetchAllIssues() {
+	const [owner, repo] = repository.split('/');
+	const all = [];
+	let page = 1;
+	while (true) {
+		const url = new URL(`https://api.github.com/repos/${owner}/${repo}/issues`);
+		url.searchParams.set('state', 'all');
+		url.searchParams.set('per_page', '100');
+		url.searchParams.set('page', String(page));
+		const response = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				Accept: 'application/vnd.github+json',
+				'User-Agent': 'astro-issues-sync',
+			},
+		});
+		if (!response.ok) {
+			throw new Error(`Failed to fetch issues: ${response.status} ${await response.text()}`);
+		}
+		const chunk = await response.json();
+		if (chunk.length === 0) {
+			break;
+		}
+		all.push(...chunk);
+		if (chunk.length < 100) {
+			break;
+		}
+		page += 1;
+	}
+	return all;
+}
+
+async function writeContentFile(kind, slug, issue, labels, pinned, hidden) {
+	const targetPath = path.join(CONTENT_ROOT, kind, `${slug}.md`);
+	const summary = toSummary(issue.body);
+	const frontmatter = [
+		'---',
+		`title: ${yamlString(issue.title || `Issue ${issue.number}`)}`,
+		`slug: ${yamlString(slug)}`,
+		`date: ${yamlString(issue.created_at)}`,
+		`issueNumber: ${issue.number}`,
+		`url: ${yamlString(issue.html_url)}`,
+		`labels: [${labels.map((label) => yamlString(label)).join(', ')}]`,
+		`pinned: ${pinned}`,
+		`hidden: ${hidden}`,
+		`summary: ${yamlString(summary)}`,
+		'---',
+		'',
+	].join('\n');
+	const body = issue.body?.trim() ? `${issue.body.trim()}\n` : 'No content.\n';
+	await fs.writeFile(targetPath, `${frontmatter}${body}`, 'utf8');
+}
+
+async function run() {
+	await ensureCleanContentDirs();
+	const issues = await fetchAllIssues();
+	const slugSetByKind = new Map(
+		TARGET_DIRS.map((name) => [name, new Set()]),
+	);
+
+	let written = 0;
+	for (const issue of issues) {
+		if (issue.pull_request) {
+			continue;
+		}
+		const labels = (issue.labels ?? [])
+			.map((entry) => (typeof entry === 'string' ? entry : entry.name))
+			.filter(Boolean)
+			.map((name) => name.toLowerCase());
+		const kind = classify(labels);
+		const pinned = labels.includes('pinned');
+		const hidden = labels.includes('hidden');
+
+		let slug = kind === 'pages' ? 'about' : slugify(issue.title || `issue-${issue.number}`);
+		const used = slugSetByKind.get(kind);
+		if (used.has(slug)) {
+			slug = `${slug}-${issue.number}`;
+		}
+		used.add(slug);
+
+		await writeContentFile(kind, slug, issue, labels, pinned, hidden);
+		written += 1;
+	}
+	console.log(`Synced ${written} issues to Astro content.`);
+}
+
+run().catch((error) => {
+	console.error(error);
+	process.exit(1);
+});
