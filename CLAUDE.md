@@ -19,3 +19,6 @@ Minimal, Harmonious, Functional. (简约, 协调). The brand focuses on the puri
 3. **Harmonious Balance**: Maintain a consistent and rhythmic use of whitespace to create a calm, organized feeling.
 4. **Accessible by Default**: Use clear typography (Atkinson), high-contrast (but not harsh) color palettes, and semantic HTML to ensure everyone can read the blog.
 5. **Low Friction**: The design should reflect the ease of the "GitHub Issue to Blog Post" workflow—lightweight and fast.
+
+## Engineering Standards
+- **Type Safety**: Use robust TypeScript type definitions. Explicitly forbid the use of `any` unless absolutely necessary (e.g., when interfacing with untyped 3rd party libraries). Always prefer specific types, interfaces, or generics from library exports (like `CollectionEntry` from `astro:content`).
