@@ -1,95 +1,36 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
-const getDate = (entry) => entry.data.date ?? new Date(0);
-const getSlug = (entry) => entry.id;
-
-const blogPosts = (
-	await getCollection('blog', ({ data }) => !data.labels.includes('hidden'))
-).sort((a, b) => getDate(b).valueOf() - getDate(a).valueOf());
-
-const latest = blogPosts.slice(0, 10);
+const pages = await getCollection(
+	'pages',
+	({ data, id }) => !data.labels.includes('hidden') && (id === 'about' || data.labels.includes('about')),
+);
+const aboutEntry = pages[0];
+const rendered = aboutEntry ? await render(aboutEntry) : null;
+const AboutContent = rendered?.Content;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			.home {
-				max-width: 800px;
-				margin: 0 auto;
-			}
-			.page-header {
-				margin-bottom: 3rem;
-			}
-			.entries {
-				display: grid;
-				gap: 0.75rem;
-				padding: 0;
-				list-style: none;
-				margin: 0;
-			}
-			.entry {
-				display: flex;
-				align-items: baseline;
-				gap: 1.5rem;
-			}
-			.entry .date {
-				flex-shrink: 0;
-				width: 100px;
-				color: var(--muted);
-				font-size: 0.9rem;
-				font-variant-numeric: tabular-nums;
-			}
-			.entry h3 {
-				margin: 0;
-				font-size: 1.05rem;
-				font-weight: 500;
-			}
-			.entry h3 a {
-				color: var(--text);
-				text-decoration: none;
-			}
-			.entry h3 a:hover {
-				color: var(--link);
-				text-decoration: underline;
-				text-underline-offset: 0.2em;
-			}
-			@media (max-width: 640px) {
-				.entry {
-					flex-direction: column;
-					gap: 0.2rem;
-					margin-bottom: 0.5rem;
-				}
-				.entry .date {
-					width: auto;
-					font-size: 0.8rem;
-				}
-			}
-		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<div class="home">
-				<header class="page-header">
-					<h1>Blog</h1>
-				</header>
-				<ul class="entries">
-					{latest.map((post) => (
-						<li class="entry">
-							<span class="date"><FormattedDate date={getDate(post)} /></span>
-							<h3><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h3>
-						</li>
-					))}
-				</ul>
-			</div>
+			{
+				AboutContent ? (
+					<article class="prose">
+						<AboutContent />
+					</article>
+				) : (
+					<p>No about content yet. Create an issue with label <code>about</code>.</p>
+				)
+			}
 		</main>
 		<Footer />
 	</body>

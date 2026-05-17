@@ -19,14 +19,10 @@ const posts = (
 	<head>
 		<BaseHead title={`Blog · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 		<style>
-			.wrap {
-				max-width: 800px;
-				margin: 0 auto;
-			}
-			.hero {
+			.blog-header {
 				margin-bottom: 3rem;
 			}
-			.hero h1 {
+			.blog-header h1 {
 				margin: 0;
 			}
 			.entries {
@@ -82,23 +78,21 @@ const posts = (
 	<body>
 		<Header />
 		<main>
-			<section class="wrap">
-				<header class="hero">
-					<h1>Blog</h1>
-				</header>
-				{posts.length === 0 ? (
-					<p class="empty">No posts yet. Create a new GitHub Issue to publish one.</p>
-				) : (
-					<ul class="entries">
-						{posts.map((post) => (
-							<li class="entry">
-								<span class="date"><FormattedDate date={getDate(post)} /></span>
-								<h2><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h2>
-							</li>
-						))}
-					</ul>
-				)}
-			</section>
+			<header class="blog-header">
+				<h1>Blog</h1>
+			</header>
+			{posts.length === 0 ? (
+				<p class="empty">No posts yet. Create a new GitHub Issue to publish one.</p>
+			) : (
+				<ul class="entries">
+					{posts.map((post) => (
+						<li class="entry">
+							<span class="date"><FormattedDate date={getDate(post)} /></span>
+							<h2><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h2>
+						</li>
+					))}
+				</ul>
+			)}
 		</main>
 		<Footer />
 	</body>
