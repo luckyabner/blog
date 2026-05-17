@@ -1,19 +1,27 @@
----
-const today = new Date();
----
-
-<footer>
-	<p>&copy; {today.getFullYear()} Abner.</p>
+<footer class="minimal-footer">
+	<a href="https://github.com/luckyabner" target="_blank" rel="noopener noreferrer">
+		github.com/luckyabner
+	</a>
 </footer>
+
 <style>
-	footer {
+	.minimal-footer {
+		width: 100%;
 		max-width: 800px;
 		margin: 0 auto;
 		padding: 4rem 1.25rem 5rem;
-		color: var(--muted);
-		font-size: 0.85rem;
+		text-align: left;
+		box-sizing: border-box;
 	}
-	p {
-		margin: 0;
+	a {
+		font-size: 0.9rem;
+		color: var(--muted);
+		text-decoration: none;
+		transition: color 0.15s ease;
+	}
+	a:hover {
+		color: var(--text);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
 	}
 </style>

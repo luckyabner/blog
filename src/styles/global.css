@@ -30,12 +30,18 @@ body {
 	line-height: 1.7;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
 }
 
 main {
 	max-width: 800px;
 	margin: 0 auto;
 	padding: 3rem 1.25rem 5rem;
+	flex: 1;
+	width: 100%;
+	box-sizing: border-box;
 }
 h1 {
 	font-size: clamp(1.6rem, 3.5vw, 2.4rem);
@@ -123,6 +129,32 @@ hr {
 	border-top: 1px solid var(--surface-border);
 	margin: 3rem 0;
 }
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+	mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+	z-index: 1;
+}
+::view-transition-new(root) {
+	z-index: 999;
+}
+
+.theme-transitioning::view-transition-new(root) {
+	animation: reveal 0.3s ease-out forwards;
+}
+
+@keyframes reveal {
+	from {
+		clip-path: circle(0% at 0 0);
+	}
+	to {
+		clip-path: circle(150% at 0 0);
+	}
+}
+
 ::selection {
 	background: var(--selection);
 }

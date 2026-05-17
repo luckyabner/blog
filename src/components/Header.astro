@@ -5,7 +5,22 @@ import HeaderLink from './HeaderLink.astro';
 
 <header>
 	<nav>
-		<h2 class="site"><a href="/">{SITE_TITLE}</a></h2>
+		<h2 class="site">
+			<a href="/">
+				<img 
+					src="/logo-light.png" 
+					alt={SITE_TITLE} 
+					class="logo light-logo" 
+					style="height: 64px; width: auto;"
+				/>
+				<img 
+					src="/logo-dark.png" 
+					alt={SITE_TITLE} 
+					class="logo dark-logo" 
+					style="height: 64px; width: auto;"
+				/>
+			</a>
+		</h2>
 		<div class="links">
 			<HeaderLink href="/blog">Blog</HeaderLink>
 			<HeaderLink href="/projects">Projects</HeaderLink>
@@ -28,15 +43,31 @@ import HeaderLink from './HeaderLink.astro';
 			button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
 		};
 
+		const toggleTheme = () => {
+			const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+			localStorage.setItem(key, next);
+			apply(next);
+		};
+
 		const initial =
 			localStorage.getItem(key) ||
 			(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 		apply(initial);
 
 		button.addEventListener('click', () => {
-			const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-			localStorage.setItem(key, next);
-			apply(next);
+			if (!document.startViewTransition) {
+				toggleTheme();
+				return;
+			}
+
+			root.classList.add('theme-transitioning');
+			const transition = document.startViewTransition(() => {
+				toggleTheme();
+			});
+
+			transition.finished.finally(() => {
+				root.classList.remove('theme-transitioning');
+			});
 		});
 	})();
 </script>
@@ -52,6 +83,17 @@ import HeaderLink from './HeaderLink.astro';
 	.site a {
 		text-decoration: none;
 		color: var(--text);
+		display: flex;
+		align-items: center;
+	}
+	.logo {
+		height: 64px;
+		width: auto;
+		display: block;
+	}
+	:root[data-theme='dark'] .light-logo,
+	:root[data-theme='light'] .dark-logo {
+		display: none;
 	}
 	nav {
 		max-width: 800px;
@@ -100,20 +142,26 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	@media (max-width: 640px) {
 		header {
-			padding: 1.5rem 1rem 0.5rem;
+			padding: 1.5rem 1rem 1rem;
+		}
+		.site {
+			display: block;
+		}
+		.logo {
+			height: 36px;
 		}
 		nav {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.75rem;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.5rem;
 		}
 		.links {
-			width: 100%;
-			justify-content: flex-start;
-			gap: 1rem;
+			width: auto;
+			gap: 0.8rem;
 		}
-		.theme-toggle {
-			margin-left: auto;
+		.links :global(a) {
+			font-size: 0.85rem;
 		}
 	}
 </style>
