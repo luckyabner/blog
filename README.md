@@ -9,7 +9,6 @@
 - label 分流：
   - `projects` → Projects 页面
   - `about` → About 页面（`/about`）
-  - `pinned` → 首页置顶
   - `hidden` → 不展示
 - 无数据库、无运行时 GitHub API 请求、无客户端 token 暴露
 - RSS + Sitemap + 静态生成
@@ -31,7 +30,7 @@ GITHUB_TOKEN=xxx GITHUB_REPOSITORY=owner/repo pnpm sync:issues
 
 1. 拉取仓库 Issues（自动分页）
 2. 生成 `src/content/blog` / `src/content/projects` / `src/content/pages`
-3. 输出标准 frontmatter（slug/date/labels/pinned/hidden/summary）
+3. 输出标准 frontmatter（title/date/labels/issueNumber/url）
 
 ## GitHub Actions 自动同步
 

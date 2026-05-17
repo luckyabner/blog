@@ -7,28 +7,55 @@ import HeaderLink from './HeaderLink.astro';
 	<nav>
 		<h2 class="site"><a href="/">{SITE_TITLE}</a></h2>
 		<div class="links">
-			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/blog">Blog</HeaderLink>
-			<HeaderLink href="/projects">Projects</HeaderLink>
+			<HeaderLink href="/">Writing</HeaderLink>
+			<HeaderLink href="/projects">Portfolio</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
+			<button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
+				<span class="sun">☀</span>
+				<span class="moon">☾</span>
+			</button>
 		</div>
 	</nav>
 </header>
+<script is:inline>
+	(() => {
+		const key = 'theme';
+		const root = document.documentElement;
+		const button = document.querySelector('[data-theme-toggle]');
+		if (!button) return;
+
+		const apply = (theme) => {
+			root.dataset.theme = theme;
+			button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+		};
+
+		const initial =
+			localStorage.getItem(key) ||
+			(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+		apply(initial);
+
+		button.addEventListener('click', () => {
+			const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+			localStorage.setItem(key, next);
+			apply(next);
+		});
+	})();
+</script>
 <style>
 	header {
-		padding: 1rem;
-		border-bottom: 1px solid var(--surface-border);
+		padding: 2.5rem 1.25rem 1rem;
 	}
 	.site {
 		margin: 0;
 		font-size: 1rem;
+		font-weight: 700;
 	}
 	.site a {
 		text-decoration: none;
-		color: inherit;
+		color: var(--text);
 	}
 	nav {
-		max-width: 760px;
+		max-width: 800px;
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
@@ -37,12 +64,57 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	.links {
 		display: flex;
-		gap: 1rem;
+		gap: 1.2rem;
+		align-items: center;
+	}
+	.links :global(a) {
+		font-size: 0.95rem;
+		text-decoration: none;
+		color: var(--muted);
+		font-weight: 500;
+		transition: color 0.15s ease;
+	}
+	.links :global(a:hover),
+	.links :global(a.active) {
+		color: var(--text);
+	}
+	.theme-toggle {
+		border: none;
+		background: transparent;
+		color: var(--muted);
+		height: 2rem;
+		width: 2rem;
+		font-size: 1rem;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		transition: color 0.15s ease;
+	}
+	.theme-toggle:hover {
+		color: var(--text);
+	}
+	:root[data-theme='dark'] .sun,
+	:root[data-theme='light'] .moon {
+		display: none;
 	}
 	@media (max-width: 640px) {
+		header {
+			padding: 1.5rem 1rem 0.5rem;
+		}
 		nav {
 			flex-direction: column;
 			align-items: flex-start;
+			gap: 0.75rem;
+		}
+		.links {
+			width: 100%;
+			justify-content: flex-start;
+			gap: 1rem;
+		}
+		.theme-toggle {
+			margin-left: auto;
 		}
 	}
 </style>

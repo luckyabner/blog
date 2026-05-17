@@ -7,7 +7,7 @@ import { SITE_TITLE } from '../consts';
 
 const pages = await getCollection(
 	'pages',
-	({ data, id }) => !data.hidden && (data.slug === 'about' || id === 'about' || data.labels.includes('about')),
+	({ data, id }) => !data.labels.includes('hidden') && (id === 'about' || data.labels.includes('about')),
 );
 const aboutEntry = pages[0];
 const rendered = aboutEntry ? await render(aboutEntry) : null;
@@ -29,7 +29,7 @@ const AboutContent = rendered?.Content;
 						<AboutContent />
 					</article>
 				) : (
-					<p>No about content yet. Create an issue with label <code>about</code> to populate this page.</p>
+					<p>No about content yet. Create an issue with label <code>about</code>.</p>
 				)
 			}
 		</main>

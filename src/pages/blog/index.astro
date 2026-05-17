@@ -6,14 +6,12 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const getDate = (entry) => entry.data.date ?? entry.data.pubDate ?? new Date(0);
-const getSlug = (entry) => entry.data.slug ?? entry.id;
-const getSummary = (entry) =>
-	entry.data.summary ?? entry.data.description ?? 'No summary yet.';
+const getDate = (entry) => entry.data.date ?? new Date(0);
+const getSlug = (entry) => entry.id;
 
-const posts = (await getCollection('blog', ({ data }) => !data.hidden)).sort(
-	(a, b) => getDate(b).valueOf() - getDate(a).valueOf(),
-);
+const posts = (
+	await getCollection('blog', ({ data }) => !data.labels.includes('hidden'))
+).sort((a, b) => getDate(b).valueOf() - getDate(a).valueOf());
 ---
 
 <!doctype html>
@@ -21,53 +19,81 @@ const posts = (await getCollection('blog', ({ data }) => !data.hidden)).sort(
 	<head>
 		<BaseHead title={`Blog · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 		<style>
+			.wrap {
+				max-width: 800px;
+				margin: 0 auto;
+			}
+			.hero {
+				margin-bottom: 3rem;
+			}
+			.hero h1 {
+				margin: 0;
+			}
 			.entries {
 				display: grid;
-				gap: 1rem;
+				gap: 0.75rem;
 				margin: 0;
 				padding: 0;
 				list-style: none;
 			}
 			.entry {
-				border: 1px solid var(--surface-border);
-				border-radius: 0.65rem;
-				padding: 0.9rem 1rem;
+				display: flex;
+				align-items: baseline;
+				gap: 1.5rem;
+			}
+			.entry .date {
+				flex-shrink: 0;
+				width: 100px;
+				color: var(--muted);
+				font-size: 0.9rem;
+				font-variant-numeric: tabular-nums;
 			}
 			.entry h2 {
 				margin: 0;
-				font-size: 1.1rem;
+				font-size: 1.05rem;
+				font-weight: 500;
 			}
-			.date {
-				margin: 0.3rem 0 0.4rem;
-				color: var(--muted);
-				font-size: 0.9rem;
+			.entry h2 a {
+				text-decoration: none;
+				color: var(--text);
 			}
-			.summary {
-				margin: 0;
-				color: var(--muted);
-				font-size: 0.95rem;
+			.entry h2 a:hover {
+				color: var(--link);
+				text-decoration: underline;
+				text-underline-offset: 0.2em;
 			}
 			.empty {
 				color: var(--muted);
+				font-style: italic;
+			}
+			@media (max-width: 640px) {
+				.entry {
+					flex-direction: column;
+					gap: 0.2rem;
+					margin-bottom: 0.5rem;
+				}
+				.entry .date {
+					width: auto;
+					font-size: 0.8rem;
+				}
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<h1>Blog</h1>
+			<section class="wrap">
+				<header class="hero">
+					<h1>Writing</h1>
+				</header>
 				{posts.length === 0 ? (
 					<p class="empty">No posts yet. Create a new GitHub Issue to publish one.</p>
 				) : (
 					<ul class="entries">
 						{posts.map((post) => (
 							<li class="entry">
+								<span class="date"><FormattedDate date={getDate(post)} /></span>
 								<h2><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h2>
-								<p class="date">
-									<FormattedDate date={getDate(post)} />
-								</p>
-								<p class="summary">{getSummary(post)}</p>
 							</li>
 						))}
 					</ul>

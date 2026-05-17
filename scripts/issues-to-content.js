@@ -29,18 +29,6 @@ function yamlString(value) {
 	return JSON.stringify(String(value ?? ''));
 }
 
-function toSummary(markdown) {
-	const plain = String(markdown ?? '')
-		.replace(/```[\s\S]*?```/g, ' ')
-		.replace(/`[^`]*`/g, ' ')
-		.replace(/!\[[^\]]*]\([^)]+\)/g, ' ')
-		.replace(/\[[^\]]+]\([^)]+\)/g, '$1')
-		.replace(/[#>*_~-]/g, ' ')
-		.replace(/\s+/g, ' ')
-		.trim();
-	return plain.slice(0, 180);
-}
-
 function classify(labels) {
 	if (labels.includes('about')) {
 		return 'pages';
@@ -59,12 +47,8 @@ async function ensureCleanContentDirs() {
 	const placeholder = [
 		'---',
 		'title: "placeholder"',
-		'slug: "placeholder"',
 		'date: "1970-01-01T00:00:00.000Z"',
 		'labels: ["hidden"]',
-		'pinned: false',
-		'hidden: true',
-		'summary: "placeholder"',
 		'---',
 		'',
 	].join('\n');
@@ -104,20 +88,15 @@ async function fetchAllIssues() {
 	return all;
 }
 
-async function writeContentFile(kind, slug, issue, labels, pinned, hidden) {
+async function writeContentFile(kind, slug, issue, labels) {
 	const targetPath = path.join(CONTENT_ROOT, kind, `${slug}.md`);
-	const summary = toSummary(issue.body);
 	const frontmatter = [
 		'---',
 		`title: ${yamlString(issue.title || `Issue ${issue.number}`)}`,
-		`slug: ${yamlString(slug)}`,
 		`date: ${yamlString(issue.created_at)}`,
 		`issueNumber: ${issue.number}`,
 		`url: ${yamlString(issue.html_url)}`,
 		`labels: [${labels.map((label) => yamlString(label)).join(', ')}]`,
-		`pinned: ${pinned}`,
-		`hidden: ${hidden}`,
-		`summary: ${yamlString(summary)}`,
 		'---',
 		'',
 	].join('\n');
@@ -142,8 +121,6 @@ async function run() {
 			.filter(Boolean)
 			.map((name) => name.toLowerCase());
 		const kind = classify(labels);
-		const pinned = labels.includes('pinned');
-		const hidden = labels.includes('hidden');
 
 		let slug = kind === 'pages' ? 'about' : slugify(issue.title || `issue-${issue.number}`);
 		const used = slugSetByKind.get(kind);
@@ -152,7 +129,7 @@ async function run() {
 		}
 		used.add(slug);
 
-		await writeContentFile(kind, slug, issue, labels, pinned, hidden);
+		await writeContentFile(kind, slug, issue, labels);
 		written += 1;
 	}
 	console.log(`Synced ${written} issues to Astro content.`);

@@ -4,17 +4,10 @@ import { z } from 'astro/zod';
 
 const issueContentSchema = z.object({
 	title: z.string(),
-	slug: z.string().optional(),
 	date: z.coerce.date().optional(),
-	pubDate: z.coerce.date().optional(),
-	updatedDate: z.coerce.date().optional(),
-	description: z.string().optional(),
-	summary: z.string().optional(),
 	issueNumber: z.number().int().optional(),
 	url: z.string().url().optional(),
 	labels: z.array(z.string()).default([]),
-	pinned: z.boolean().default(false),
-	hidden: z.boolean().default(false),
 });
 
 const blog = defineCollection({
