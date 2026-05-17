@@ -30,10 +30,11 @@ function yamlString(value) {
 }
 
 function classify(labels) {
-	if (labels.includes('about')) {
+	const lowerLabels = labels.map(l => l.toLowerCase());
+	if (lowerLabels.includes('about')) {
 		return 'pages';
 	}
-	if (labels.includes('projects')) {
+	if (lowerLabels.includes('projects')) {
 		return 'projects';
 	}
 	return 'blog';
@@ -116,10 +117,12 @@ async function run() {
 		if (issue.pull_request) {
 			continue;
 		}
+
+		// Extract label names properly
 		const labels = (issue.labels ?? [])
-			.map((entry) => (typeof entry === 'string' ? entry : entry.name))
-			.filter(Boolean)
-			.map((name) => name.toLowerCase());
+			.map((label) => (typeof label === 'string' ? label : label.name))
+			.filter(Boolean);
+
 		const kind = classify(labels);
 
 		let slug = kind === 'pages' ? 'about' : slugify(issue.title || `issue-${issue.number}`);
@@ -129,6 +132,7 @@ async function run() {
 		}
 		used.add(slug);
 
+		console.log(`[Sync] Writing ${kind}/${slug} (Labels: ${labels.join(', ') || 'none'})`);
 		await writeContentFile(kind, slug, issue, labels);
 		written += 1;
 	}
