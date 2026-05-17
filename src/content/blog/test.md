@@ -1,6 +1,7 @@
 ---
 title: "test"
 date: "2026-05-16T06:59:57Z"
+updatedDate: "2026-05-17T05:45:22Z"
 issueNumber: 1
 url: "https://github.com/luckyabner/blog/issues/1"
 labels: []
