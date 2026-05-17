@@ -95,6 +95,7 @@ async function writeContentFile(kind, slug, issue, labels) {
 		'---',
 		`title: ${yamlString(issue.title || `Issue ${issue.number}`)}`,
 		`date: ${yamlString(issue.created_at)}`,
+		`updatedDate: ${yamlString(issue.updated_at)}`,
 		`issueNumber: ${issue.number}`,
 		`url: ${yamlString(issue.html_url)}`,
 		`labels: [${labels.map((label) => yamlString(label)).join(', ')}]`,

@@ -12,12 +12,8 @@ const getSlug = (entry) => entry.id;
 const blogPosts = (
 	await getCollection('blog', ({ data }) => !data.labels.includes('hidden'))
 ).sort((a, b) => getDate(b).valueOf() - getDate(a).valueOf());
-const projects = (
-	await getCollection('projects', ({ data }) => !data.labels.includes('hidden'))
-).sort((a, b) => getDate(b).valueOf() - getDate(a).valueOf());
 
 const latest = blogPosts.slice(0, 10);
-const projectPreview = projects.slice(0, 3);
 ---
 
 <!doctype html>
@@ -29,30 +25,8 @@ const projectPreview = projects.slice(0, 3);
 				max-width: 800px;
 				margin: 0 auto;
 			}
-			.intro {
-				margin-bottom: 4rem;
-			}
-			.intro h1 {
-				margin-bottom: 0.5rem;
-			}
-			.intro p {
-				max-width: 52ch;
-				color: var(--muted);
-				font-size: 1.1rem;
-				line-height: 1.6;
-			}
-			.section {
-				margin-bottom: 3.5rem;
-			}
-			.section-title {
-				font-size: 0.8rem;
-				font-weight: 700;
-				letter-spacing: 0.05em;
-				text-transform: uppercase;
-				color: var(--muted);
-				margin-bottom: 1.5rem;
-				border-bottom: 1px solid var(--surface-border);
-				padding-bottom: 0.5rem;
+			.page-header {
+				margin-bottom: 3rem;
 			}
 			.entries {
 				display: grid;
@@ -104,36 +78,17 @@ const projectPreview = projects.slice(0, 3);
 		<Header />
 		<main>
 			<div class="home">
-				<section class="intro">
-					<h1>{SITE_TITLE}</h1>
-					<p>{SITE_DESCRIPTION}</p>
-				</section>
-
-				<section class="section">
-					<h2 class="section-title">Writing</h2>
-					<ul class="entries">
-						{latest.map((post) => (
-							<li class="entry">
-								<span class="date"><FormattedDate date={getDate(post)} /></span>
-								<h3><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h3>
-							</li>
-						))}
-					</ul>
-				</section>
-
-				{projectPreview.length > 0 && (
-					<section class="section">
-						<h2 class="section-title">Works</h2>
-						<ul class="entries">
-							{projectPreview.map((project) => (
-								<li class="entry">
-									<span class="date"><FormattedDate date={getDate(project)} /></span>
-									<h3><a href="/projects">{project.data.title}</a></h3>
-								</li>
-							))}
-						</ul>
-					</section>
-				)}
+				<header class="page-header">
+					<h1>Blog</h1>
+				</header>
+				<ul class="entries">
+					{latest.map((post) => (
+						<li class="entry">
+							<span class="date"><FormattedDate date={getDate(post)} /></span>
+							<h3><a href={`/blog/${getSlug(post)}/`}>{post.data.title}</a></h3>
+						</li>
+					))}
+				</ul>
 			</div>
 		</main>
 		<Footer />

@@ -5,6 +5,7 @@ import { z } from 'astro/zod';
 const issueContentSchema = z.object({
 	title: z.string(),
 	date: z.coerce.date().optional(),
+	updatedDate: z.coerce.date().optional(),
 	issueNumber: z.number().int().optional(),
 	url: z.string().url().optional(),
 	labels: z.array(z.string()).default([]),

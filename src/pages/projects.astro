@@ -18,16 +18,18 @@ const renderedProjects = await Promise.all(
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={`Portfolio · ${SITE_TITLE}`} description="Projects from labeled GitHub issues." />
+		<BaseHead title={`Projects · ${SITE_TITLE}`} description="Projects from labeled GitHub issues." />
 		<style>
 			.list {
 				display: grid;
 				gap: 4rem;
-				margin-top: 3rem;
 			}
 			.item {
+				padding-top: 0;
+			}
+			.item + .item {
 				border-top: 1px solid var(--surface-border);
-				padding-top: 2rem;
+				padding-top: 4rem;
 			}
 			.item h2 {
 				margin: 0 0 0.5rem;
@@ -35,14 +37,13 @@ const renderedProjects = await Promise.all(
 			.meta {
 				color: var(--muted);
 				font-size: 0.95rem;
-				margin-bottom: 1.5rem;
+				margin-bottom: 2rem;
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>Portfolio</h1>
 			{
 				renderedProjects.length === 0 ? (
 					<p>No project content yet. Create issues with label <code>projects</code>.</p>
@@ -52,7 +53,7 @@ const renderedProjects = await Promise.all(
 							<article class="item">
 								<h2>{project.data.title}</h2>
 								<p class="meta">
-									<FormattedDate date={getDate(project)} />
+									Last updated: <FormattedDate date={project.data.updatedDate ?? getDate(project)} />
 								</p>
 								<div class="prose">
 									<Content />
