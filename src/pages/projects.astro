@@ -32,12 +32,7 @@ const renderedProjects = await Promise.all(
 				padding-top: 4rem;
 			}
 			.item h2 {
-				margin: 0 0 0.5rem;
-			}
-			.meta {
-				color: var(--muted);
-				font-size: 0.95rem;
-				margin-bottom: 2rem;
+				margin: 0 0 1.5rem;
 			}
 			.prose :global(a) {
 				text-decoration: none;
@@ -58,9 +53,6 @@ const renderedProjects = await Promise.all(
 						{renderedProjects.map(({ project, Content }) => (
 							<article class="item">
 								<h2>{project.data.title}</h2>
-								<p class="meta">
-									Last updated: <FormattedDate date={project.data.updatedDate ?? getDate(project)} />
-								</p>
 								<div class="prose">
 									<Content />
 								</div>
